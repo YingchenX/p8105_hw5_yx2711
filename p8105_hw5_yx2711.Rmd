@@ -126,11 +126,13 @@ baltimore_test %>%
 
 ```
 
+
+
 The estimate of proportion of homicides that are unsolved in Baltimore is `r baltimore_test %>% select(estimate)` (95% CI: `r baltimore_test %>% select(conf.low)` to `r baltimore_test %>% select(conf.high)`).
 
 
-Write a `function(x)` for repeating the process of prop.test.
 
+Write a `function(x)` for repeating the process of prop.test.
 ```{r}
 
 prop_test = function(x){
@@ -192,7 +194,9 @@ After factor reordering the city_state by the estimates for proportion of unsolv
 
 
 
+
 # Problem 3
+
 
 First write down the function to simulate data from a normal distribution, run a t.test, and return the estimates of t-statistics and p-value.
 ```{r}
@@ -209,6 +213,7 @@ t_test = function(n = 30, mu, sigma = 5) {
   
 }
 ```
+
 
 
 Then, generate 5000 datasets from `rnorm()` and run the `t_test` for mu = 0.
@@ -228,6 +233,7 @@ sim_mu0_df =
 ```
 
 
+
 Repeat the above process for mu = {1, 2, 3, 4, 5, 6}
 ```{r, cache = TRUE}
 sim_mu_df = 
@@ -240,6 +246,7 @@ sim_mu_df =
   ) %>% 
   unnest()
 ```
+
 
 
 Create a dataframe called `sim_mu_summary` with the summary data of total number of tests, total number of reject, and the proportion of reject.
@@ -261,12 +268,13 @@ sim_mu_summary = sim_mu_df %>%
   
 sim_mu_summary %>% 
   ggplot(aes(x = true_mu, y = prop)) +
-  geom_path() + 
+  geom_point() +
+  geom_line() +
   labs(
     title = "The true value of mu vs the proportion of rejected",
     x = "True mu",
     y = "Proportion of rejected")  +
-  scale_fill_continuous(breaks = c(1, 2, 3, 4, 5, 6))
+  scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6))
 
 
 ```
@@ -274,7 +282,9 @@ sim_mu_summary %>%
 As the effect size, ie, the true mu, increases, the power, ie, the proportion of times the null was rejected will increase.
 
 
+
 Make a plot showing the average estimate of mu hat on the y axis and the true value of mu on the x-axis.
+Also, overlay the first plot with the second plot, which shows the average estimate of mu hat and the true value of mu after filtering out the samples for which the null was rejected. 
 ```{r}
 sim_average = sim_mu_df %>% 
   group_by(true_mu) %>% 
@@ -297,8 +307,18 @@ ggplot(sim_average, aes(x = true_mu, y = avg_estimate)) +
   geom_point() +
   geom_line() +
   geom_point(data = sim_reject, color = "red") +
-  geom_line(data = sim_reject, color = "red")
+  geom_line(data = sim_reject, color = "red") +
+  labs(
+    title = "The true value of mu vs the average estimate of mu",
+    x = "True mu",
+    y = "Average estimate of mu")  +
+  scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6))
   
-
 ```
+
+By observing the plot for true_mu vs average estimate for all samples, we can see a straight line with positive slope, indicating that the average estimates for mu are approximately the same as the true mu.
+
+After overlaying the two lines, we can easily observe that the sample average of mu hat is not equal to the true value of mu when true mu is less than 4. As the true mu gets larger than 4, the two lines overlapped, indicating that the sample average of mu hat is approximately the same as the true value of mu. 
+
+Since true mu is equal to effect size, as effect size increase, the power will increase. As power increase, the proportion of rejection will increase. As the proportion of rejection increases, the number of rejection will be approximately the same as the total sample size. Therefore, we can observe a divergent trend when the true mu is less than 4 and a overlapped trend when the true mu is larger than 4. 
 
