@@ -90,17 +90,35 @@ homicide = homicide %>%
     city_state = str_c(city, ", ", state)
   )
 
-homicide %>% 
-  group_by(city) %>% 
+
+summary = homicide %>% 
+  group_by(city_state) %>% 
   summarize(
     total_number = n(),
     total_unsolved = sum(disposition == c("Closed without arrest", "Open/No arrest")
-  )) %>% 
-  knitr::kable()
+  ))
+
+summary %>% knitr::kable()
 
 ```
 
 The above table summarizes within cities the total number of homicides indicating by `total_number` and the number of unsolved homicides indicating by `total_unsolved`.
 
 
+Use `prop.test()` function to estimate the proportion of unsolved homicides in Baltimore, MD.
+```{r}
+
+baltimore_test = prop.test(
+    summary %>% filter(city_state == "Baltimore, MD") %>% pull(total_unsolved),
+    summary %>% filter(city_state == "Baltimore, MD") %>% pull(total_number)
+    ) %>% 
+  broom::tidy()
+
+baltimore_test %>% 
+  select(estimate, conf.low, conf.high) %>% 
+  knitr::kable(digits = 3)
+
+```
+
+The estimate of proportion of homicides that are unsolved in Baltimore is `r baltimore_test %>% select(estimate)` (95% CI: `r baltimore_test %>% select(conf.low)` to `r baltimore_test %>% select(conf.high)`).
 
