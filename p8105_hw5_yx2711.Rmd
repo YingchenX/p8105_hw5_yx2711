@@ -136,7 +136,6 @@ Write a `function(x)` for repeating the process of prop.test.
 prop_test = function(x){
   
   summary = x %>% 
-  group_by(city_state) %>% 
   summarize(
     total_number = n(),
     total_unsolved = sum(disposition %in% c("Closed without arrest", "Open/No arrest")
@@ -159,30 +158,34 @@ Map the nested data to the function `prop_test` to iterate the process of propor
 ```{r}
 
 homicide_nest = homicide %>%
-  nest(data = uid:city_state)
+  select(city_state, everything()) %>% 
+  nest(data = uid:disposition)
 
-
-##### Mapping unsuccessful. Need to work on it later.
-# homicide_test = homicide_nest %>% 
-#  mutate(test = map(data, prop_test)) %>% 
-#  unnest() %>% 
-#  broom::tidy() %>% 
-#  select(estimate, conf.low, conf.high) %>% 
-#  knitr::kable(digits = 3)
+ homicide_test = homicide_nest %>% 
+  mutate(test = map(data, prop_test)) %>% 
+  unnest(test)
+ 
+homicide_test %>% 
+   select(city_state, estimate, conf.low, conf.high) %>% 
+   knitr::kable(digits = 3)
 
 ```
 
 
 Create a plot that shows the estimates and CI for each city
-```{r, eval=FALSE}
+```{r}
 homicide_test %>% 
+  mutate(
+    city_state = fct_reorder(city_state, estimate)
+  ) %>% 
   ggplot(aes(x = city_state, y = estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
   labs(
     title = "The estimates and CIs for proportion of unsolved homicides for each city",
     x = "City, State",
-    y = "Estimate Proportion")
+    y = "Estimate Proportion") +
+  theme(axis.text.x = element_text(angle = 90))
 ```
 
 Need interpretation of graph.
@@ -257,10 +260,34 @@ sim_mu_summary = sim_mu_df %>%
   
 sim_mu_summary %>% 
   ggplot(aes(x = true_mu, y = prop)) +
-  geom_point() +
-  geom_line()
+  geom_path() + 
+  labs(
+    title = "The true value of mu vs the proportion of rejected",
+    x = "True mu",
+    y = "Proportion of rejected")  +
+  scale_fill_continuous(breaks = c(1, 2, 3, 4, 5, 6))
 
 
 ```
 
+As the effect size, ie, the true mu, increases, the power, ie, the proportion of times the null was rejected will increase.
+
+
+Make a plot showing the average estimate of mu hat on the y axis and the true value of mu on the x-axis.
+```{r}
+sim_mu_df %>% 
+  ggplot(aes(x = true_mu, y = estimate)) +
+  geom_point()
+  
+
+
+sim_mu_df %>%
+  mutate(
+    results = ifelse(
+      p.value < 0.05, "Reject", "Fail to reject"
+    )) %>% 
+  filter(results == "Reject") %>% 
+  ggplot(aes(x = true_mu, y = mean(estimate))) +
+  geom_point()
+```
 
