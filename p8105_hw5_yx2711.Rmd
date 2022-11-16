@@ -188,7 +188,8 @@ homicide_test %>%
   theme(axis.text.x = element_text(angle = 90))
 ```
 
-Need interpretation of graph.
+After factor reordering the city_state by the estimates for proportion of unsolved homicides, we can observe that Richmond has the lowest estimate for proportion of unsolved homicides and Chicago has the highest estimate for proportion of unsolved homicides.
+
 
 
 # Problem 3
@@ -212,7 +213,7 @@ t_test = function(n = 30, mu, sigma = 5) {
 
 Then, generate 5000 datasets from `rnorm()` and run the `t_test` for mu = 0.
 Save the resulting estimate and p-value as `sim_mu0_df`.
-```{r}
+```{r, cache = TRUE}
 
 sim_mu0_df = 
   expand_grid(
@@ -228,11 +229,11 @@ sim_mu0_df =
 
 
 Repeat the above process for mu = {1, 2, 3, 4, 5, 6}
-```{r}
+```{r, cache = TRUE}
 sim_mu_df = 
   expand_grid(
     true_mu = c(1, 2, 3, 4, 5, 6),
-    iter = 1:10
+    iter = 1:5000
   ) %>% 
   mutate(
     estimate_df = map(.x = true_mu, ~ t_test(mu = .x))
@@ -275,19 +276,29 @@ As the effect size, ie, the true mu, increases, the power, ie, the proportion of
 
 Make a plot showing the average estimate of mu hat on the y axis and the true value of mu on the x-axis.
 ```{r}
-sim_mu_df %>% 
-  ggplot(aes(x = true_mu, y = estimate)) +
-  geom_point()
-  
+sim_average = sim_mu_df %>% 
+  group_by(true_mu) %>% 
+  mutate(
+  avg_estimate = mean(estimate)
+) 
 
-
-sim_mu_df %>%
+sim_reject = sim_mu_df %>% 
+  group_by(true_mu) %>% 
   mutate(
     results = ifelse(
       p.value < 0.05, "Reject", "Fail to reject"
-    )) %>% 
+  )) %>% 
   filter(results == "Reject") %>% 
-  ggplot(aes(x = true_mu, y = mean(estimate))) +
-  geom_point()
+  mutate(
+    avg_estimate = mean(estimate)
+  )
+
+ggplot(sim_average, aes(x = true_mu, y = avg_estimate)) +
+  geom_point() +
+  geom_line() +
+  geom_point(data = sim_reject, color = "red") +
+  geom_line(data = sim_reject, color = "red")
+  
+
 ```
 
