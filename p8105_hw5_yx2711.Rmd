@@ -153,6 +153,7 @@ prop_test = function(x){
 
 
 Nesting the unrelated columns.
+Map the nested data to the function `prop_test` to iterate the process of proportional testing. 
 ```{r}
 
 homicide_nest = homicide %>%
@@ -171,7 +172,25 @@ homicide_nest = homicide %>%
 
 
 Create a plot that shows the estimates and CI for each city
+```{r, eval=FALSE}
+homicide_test %>% 
+  ggplot(aes(x = city_state, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
+  labs(
+    title = "The estimates and CIs for proportion of unsolved homicides for each city",
+    x = "City, State",
+    y = "Estimate Proportion")
+```
+
+Need interpretation of graph.
+
+
+# Problem 3
+
+
 ```{r}
 
 ```
+
 
