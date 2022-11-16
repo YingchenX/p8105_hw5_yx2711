@@ -84,10 +84,13 @@ homicide = read.csv("data/homicide-data.csv") %>%
 The raw dataset contain `r nrow(homicide)` observations and `r ncol(homicide)` variables. The key variables are uid, reported_date, victims' names, race, age, sex, city, state, longitude and latitude, and one disposition variable indicating the arrest status of the victims. The raw dataset summarizes homicides data in `r homicide %>% select(state) %>% distinct %>% count` states and `r homicide %>% select(city) %>% distinct %>% count` cities.
 
 
+Use `mutate()` to create the new variable `city_state` and recode the possible typo of `Tulsa, AL` to `Tulsa, OK`.
+Create the summary table of the total number of homicides and the number of unsolved homicides.
 ```{r}
 homicide = homicide %>% 
   mutate(
-    city_state = str_c(city, ", ", state)
+    city_state = str_c(city, ", ", state),
+    city_state = recode(city_state, "Tulsa, AL" = "Tulsa, OK")
   )
 
 
@@ -103,6 +106,7 @@ summary %>% knitr::kable()
 ```
 
 The above table summarizes within cities the total number of homicides indicating by `total_number` and the number of unsolved homicides indicating by `total_unsolved`.
+
 
 
 Use `prop.test()` function to estimate the proportion of unsolved homicides in Baltimore, MD.
@@ -122,6 +126,8 @@ baltimore_test %>%
 
 The estimate of proportion of homicides that are unsolved in Baltimore is `r baltimore_test %>% select(estimate)` (95% CI: `r baltimore_test %>% select(conf.low)` to `r baltimore_test %>% select(conf.high)`).
 
+
+Write a `function(x)` for repeating the process of prop.test.
 
 ```{r}
 
@@ -150,12 +156,22 @@ Nesting the unrelated columns.
 ```{r}
 
 homicide_nest = homicide %>%
-  select(city_state, everything()) %>% 
   nest(data = uid:city_state)
 
-homicide_test = homicide_nest %>% 
-  mutate(test = map(data, prop_test))
 
+##### Mapping unsuccessful. Need to work on it later.
+# homicide_test = homicide_nest %>% 
+#  mutate(test = map(data, prop_test)) %>% 
+#  unnest() %>% 
+#  broom::tidy() %>% 
+#  select(estimate, conf.low, conf.high) %>% 
+#  knitr::kable(digits = 3)
+
+```
+
+
+Create a plot that shows the estimates and CI for each city
+```{r}
 
 ```
 
