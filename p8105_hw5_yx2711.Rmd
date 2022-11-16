@@ -95,7 +95,7 @@ summary = homicide %>%
   group_by(city_state) %>% 
   summarize(
     total_number = n(),
-    total_unsolved = sum(disposition == c("Closed without arrest", "Open/No arrest")
+    total_unsolved = sum(disposition %in% c("Closed without arrest", "Open/No arrest")
   ))
 
 summary %>% knitr::kable()
@@ -121,4 +121,41 @@ baltimore_test %>%
 ```
 
 The estimate of proportion of homicides that are unsolved in Baltimore is `r baltimore_test %>% select(estimate)` (95% CI: `r baltimore_test %>% select(conf.low)` to `r baltimore_test %>% select(conf.high)`).
+
+
+```{r}
+
+prop_test = function(x){
+  
+  summary = x %>% 
+  group_by(city_state) %>% 
+  summarize(
+    total_number = n(),
+    total_unsolved = sum(disposition %in% c("Closed without arrest", "Open/No arrest")
+  ))
+  
+  city_test = prop.test(
+    summary %>% pull(total_unsolved),
+    summary %>% pull(total_number)
+    ) %>% 
+  broom::tidy()
+  
+  city_test
+  
+}
+```
+
+
+Nesting the unrelated columns.
+```{r}
+
+homicide_nest = homicide %>%
+  select(city_state, everything()) %>% 
+  nest(data = uid:city_state)
+
+homicide_test = homicide_nest %>% 
+  mutate(test = map(data, prop_test))
+
+
+```
 
