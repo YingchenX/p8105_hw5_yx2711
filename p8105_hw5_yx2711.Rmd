@@ -196,7 +196,6 @@ t_test = function(n = 30, mu, sigma = 5) {
   
   x = rnorm(n, mean = mu, sd = sigma)
   
-  
   t_test =
     t.test(x, mu = 0) %>% 
     broom::tidy() 
@@ -224,5 +223,44 @@ sim_mu0_df =
 
 ```
 
+
+Repeat the above process for mu = {1, 2, 3, 4, 5, 6}
+```{r}
+sim_mu_df = 
+  expand_grid(
+    true_mu = c(1, 2, 3, 4, 5, 6),
+    iter = 1:10
+  ) %>% 
+  mutate(
+    estimate_df = map(.x = true_mu, ~ t_test(mu = .x))
+  ) %>% 
+  unnest()
+```
+
+
+Create a dataframe called `sim_mu_summary` with the summary data of total number of tests, total number of reject, and the proportion of reject.
+Plot a graph with the true value of mu on the x-axis and the proportion of reject on the y-axis.
+```{r}
+sim_mu_summary = sim_mu_df %>% 
+  mutate(
+    results = ifelse(
+      p.value < 0.05, "Reject", "Fail to reject"
+    )) %>% 
+  group_by(true_mu) %>% 
+  summarize(
+    total = n(),
+    reject = sum(results == "Reject")
+  ) %>% 
+  mutate(
+    prop = reject / total
+  )
+  
+sim_mu_summary %>% 
+  ggplot(aes(x = true_mu, y = prop)) +
+  geom_point() +
+  geom_line()
+
+
+```
 
 
