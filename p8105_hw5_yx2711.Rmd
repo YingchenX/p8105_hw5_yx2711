@@ -72,3 +72,35 @@ tidy_df %>%
 ```
 
 There is a within-subject correlation. Subjects in the control groups do not have a specific trend in change overtime, while subjects in the experimental group have a linear increase in general. 
+
+
+# Problem 2
+
+```{r}
+homicide = read.csv("data/homicide-data.csv") %>% 
+  janitor::clean_names() 
+```
+
+The raw dataset contain `r nrow(homicide)` observations and `r ncol(homicide)` variables. The key variables are uid, reported_date, victims' names, race, age, sex, city, state, longitude and latitude, and one disposition variable indicating the arrest status of the victims. The raw dataset summarizes homicides data in `r homicide %>% select(state) %>% distinct %>% count` states and `r homicide %>% select(city) %>% distinct %>% count` cities.
+
+
+```{r}
+homicide = homicide %>% 
+  mutate(
+    city_state = str_c(city, ", ", state)
+  )
+
+homicide %>% 
+  group_by(city) %>% 
+  summarize(
+    total_number = n(),
+    total_unsolved = sum(disposition == c("Closed without arrest", "Open/No arrest")
+  )) %>% 
+  knitr::kable()
+
+```
+
+The above table summarizes within cities the total number of homicides indicating by `total_number` and the number of unsolved homicides indicating by `total_unsolved`.
+
+
+
